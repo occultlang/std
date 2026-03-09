@@ -1,70 +1,50 @@
+include "syscall_x86_64_helpers.occ"
+include "syscall_x86_64_table.occ"
+
 module syscall_x86_64 {
-    fn syscall_0(i64) asm i64 {
-        mov rax, rdi
-        syscall
-        ret
+    fn write(i64 fd, i64 buf, i64 len) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_write, fd, buf, len);
     }
 
-    fn syscall_1(i64, i64) asm i64 {
-        mov rax, rdi
-        mov rdi, rsi
-        syscall
-        ret
+    fn read(i64 fd, i64 buf, i64 len) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_read, fd, buf, len);
     }
 
-    fn syscall_2(i64, i64, i64) asm i64 {
-        mov rax, rdi
-        mov rdi, rsi
-        mov rsi, rdx
-        syscall
-        ret
+    fn open(string path, i64 flags, i64 mode) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_open, path, flags, mode);
     }
 
-    fn syscall_3(i64, i64, i64, i64) asm i64 {
-        mov rax, rdi
-        mov rdi, rsi
-        mov rsi, rdx
-        mov rdx, rcx
-        syscall
-        ret
+    fn close(i64 fd) {
+        return syscall_helper::syscall_1(x86_64_syscall_table::sys_close, fd);
     }
 
-    fn syscall_4(i64, i64, i64, i64, i64) asm i64 {
-        mov rax, rdi
-        mov rdi, rsi
-        mov rsi, rdx
-        mov rdx, rcx
-        mov r10, r8
-        syscall
-        ret
+    fn exit(i64 exit_code) {
+        syscall_helper::syscall_1(x86_64_syscall_table::sys_exit, exit_code);
     }
 
-    fn syscall_5(i64, i64, i64, i64, i64, i64) asm i64 {
-        mov rax, rdi
-        mov rdi, rsi
-        mov rsi, rdx
-        mov rdx, rcx
-        mov r10, r8
-        syscall
-        ret
+    fn mmap(i64 addr, i64 len, i64 prot, i64 flags, i64 fd, i64 offset) {
+        return syscall_helper::syscall_6(x86_64_syscall_table::sys_mmap, addr, len, prot, flags, fd, offset);
     }
 
-    fn syscall_6(i64, i64, i64, i64, i64, i64, i64) asm i64 {
-        mov rax, rdi
-        mov rdi, rsi
-        mov rsi, rdx
-        mov rdx, rcx
-        mov r10, r8
-        syscall
-        ret
+    fn munmap(i64 addr, i64 len) {
+        return syscall_helper::syscall_2(x86_64_syscall_table::sys_munmap, addr, len);
+    }
+
+    fn mprotect(i64 addr, i64 len, i64 prot) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_mprotect, addr, len, prot);
+    }
+
+    fn brk(i64 addr) {
+        return syscall_helper::syscall_1(x86_64_syscall_table::sys_brk, addr);
     }
 }
 
 /*fn main() {
-    const string s = "whati\n";
-    const i64 len = $(s - 8);
-    const i64 write_syscall = 1;
-    const i64 fd = 1;
-    
-    syscall_x86_64::syscall_3(write_syscall, fd, s, len);
+    string path = "/home/anthony/occult/build/output.txt";
+    string content = "Hello from Occult!\n";
+    i64 len = $(content - 8);
+
+    i64 fd = syscall_x86_64::open(path, 577, 420);
+    syscall_x86_64::write(fd, content, len);
+    syscall_x86_64::close(fd);
 }*/

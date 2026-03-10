@@ -1,0 +1,73 @@
+module syscall_helper {
+    fn syscall_0(i64 nr) asm i64 {
+        mov rax, rdi
+        syscall
+        ret
+    }
+
+    fn syscall_1(i64 nr, i64 a1) asm i64 {
+        mov rax, rdi
+        mov rdi, rsi
+        syscall
+        ret
+    }
+
+    fn syscall_2(i64 nr, i64 a1, i64 a2) asm i64 {
+        mov rax, rdi
+        mov rdi, rsi
+        mov rsi, rdx
+        syscall
+        ret
+    }
+
+    fn syscall_3(i64 nr, i64 a1, i64 a2, i64 a3) asm i64 {
+        mov rax, rdi
+        mov rdi, rsi
+        mov rsi, rdx
+        mov rdx, rcx
+        syscall
+        ret
+    }
+
+    fn syscall_4(i64 nr, i64 a1, i64 a2, i64 a3, i64 a4) asm i64 {
+        mov rax, rdi
+        mov rdi, rsi
+        mov rsi, rdx
+        mov rdx, rcx
+        mov r10, r8       
+        syscall
+        ret
+    }
+
+    fn syscall_5(i64 nr, i64 a1, i64 a2, i64 a3, i64 a4, i64 a5) asm i64 {
+        mov rax, rdi
+        mov rdi, rsi
+        mov rsi, rdx
+        mov rdx, rcx
+        mov r10, r8
+        mov r8, r9        
+        syscall
+        ret
+    }
+
+    fn syscall_6(i64 nr, i64 a1, i64 a2, i64 a3, i64 a4, i64 a5, i64 a6) asm i64 {
+        mov rax, rdi
+        mov rdi, rsi
+        mov rsi, rdx
+        mov rdx, rcx
+        mov r10, r8
+        mov r8, r9
+        mov r9, [rbp - 8]     
+        syscall
+        ret
+    }
+}
+
+/*fn main() {
+    const string s = "whati\n";
+    const i64 len = $(s - 8);
+    const i64 write_syscall = 1;
+    const i64 fd = 1;
+    
+    syscall_helper::syscall_3(write_syscall, fd, s, len);
+}*/

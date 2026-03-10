@@ -1,0 +1,55 @@
+import syscall_x86_64 from sys;
+
+module memory {
+    generic<T>
+    struct mem_heap {
+        u64 len;
+        T* user_p;
+    }
+
+    generic<T>
+    fn malloc(u64 len) T* {
+        mem_heap<T>* heap;
+
+        len  = 16 + len;
+        len  = (len + 4095) & -4096;
+    
+        heap = syscall_x86_64::mmap(0, len, 0x1 | 0x2, 0x20 | 0x02, -1, 0);
+
+        if (heap == -1) {
+            syscall_x86_64::write(1, "mmap failed\n", 12);
+            return 0;
+        }
+
+        heap.len = len;
+        heap.user_p = heap + 16;
+        
+        return heap.user_p;
+    }
+
+    generic<T>
+    fn free(T* ptr) {
+        mem_heap<T>* heap;
+
+        if ptr == 0 {
+            syscall_x86_64::write(1, "nullptr in free\n", 16);
+
+            return 0;
+        }
+
+        heap = ptr - 16;
+        syscall_x86_64::munmap(heap, heap.len);
+    }
+}
+
+/*fn main() {
+    u64* p = memory::malloc<u64>(8);
+        
+    i64 v = 0;
+    $p = 10; 
+    v = $p;
+
+    memory::free<u64>(p);
+
+    return v;
+}*/

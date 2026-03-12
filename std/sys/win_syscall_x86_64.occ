@@ -1,0 +1,34 @@
+include "win_syscall_x86_64_helpers.occ"
+
+struct IO_STATUS_BLOCK {
+    i64* Pointer; // or status code (We don't have unions)
+    u64* Information;
+}
+
+module win_syscall_x86_64 {
+    // Contains stuff that I care about
+    fn __NtWriteFile(i64 FileHandle, IO_STATUS_BLOCK* IoStatusBlock, string buffer, u64 length, u64 syscall_number) asm i64 {
+	push rbp
+        mov rbp, rsp
+        sub rsp, 0x68
+	mov r10, rcx
+	mov [rsp + 0x28], rdx
+	xor rdx, rdx
+	mov [rsp + 0x30], r8
+	xor r8, r8
+	mov [rsp + 0x38], r9
+	xor r9, r9
+	mov rax, 0
+	mov [rsp + 0x40], rax
+	mov [rsp + 0x48], rax
+	mov rax, [rbp + 0x18]
+	syscall
+	mov rsp, rbp
+	pop rbp
+	ret
+    }
+
+    fn NtWriteFile(i64 FileHandle, IO_STATUS_BLOCK* IoStatusBlock, string buffer, u64 length) {
+	return __NtWriteFile(FileHandle, IoStatusBlock, buffer, length, win_syscall_helper::get_ssn("NtWriteFile"));
+    }
+}

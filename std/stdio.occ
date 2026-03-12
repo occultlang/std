@@ -36,18 +36,14 @@ module stdio {
     }
 
     fn print_string_windows(string s) {
-        u64* IoStatusBlockPtr = alloc(16);
-        win_syscall_x86_64::NtWriteFile(GetStdOutFromPEB(), IoStatusBlockPtr, s, $(s - 8));
-        del(IoStatusBlockPtr);
+        win_syscall_x86_64::WriteFile(GetStdOutFromPEB(), s, $(s - 8));
     }
 
     fn print_char_windows(i64 c) {
-        u64* IoStatusBlockPtr = alloc(16);
         u64* buf = alloc(9);
         $(buf + 8) = c;
-        win_syscall_x86_64::NtWriteFile(GetStdOutFromPEB(), IoStatusBlockPtr, buf + 8, 1);
+        win_syscall_x86_64::WriteFile(GetStdOutFromPEB(), buf + 8, 1);
         del(buf);
-        del(IoStatusBlockPtr);
     }
 
     fn print_char(i64 c) {

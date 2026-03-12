@@ -1,146 +1,146 @@
 module win_syscall_helper {
-    fn get_peb() shellcode u64 {
-        0x55 0x48 0x89 0xE5
-        0x65 0x48 0x8B 0x04 0x25 0x60 0x00 0x00 0x00
-        0x48 0x89 0xEC 0x5D 0xC3
-    }
-    
-    fn read_u16(u64 addr) u64 {
-        return $(addr) | ($(addr + 1) << 8);
-    }
-    
-    fn read_u32(u64 addr) u64 {
-        u64 b0 = $(addr)     & 0xFF;
-        u64 b1 = $(addr + 1) & 0xFF;
-        u64 b2 = $(addr + 2) & 0xFF;
-        u64 b3 = $(addr + 3) & 0xFF;
-        return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
-    }
-    
-    fn read_u64(u64 addr) u64 {
-        return $(addr)
-            | ($(addr + 1) << 8)
-            | ($(addr + 2) << 16)
-            | ($(addr + 3) << 24)
-            | ($(addr + 4) << 32)
-            | ($(addr + 5) << 40)
-            | ($(addr + 6) << 48)
-            | ($(addr + 7) << 56);
-    }
-    
-    fn get_ntdll_base() u64 {
-        u64 ldr  = read_u64(get_peb() + 0x18);
-        u64 head = ldr + 0x20;
-        u64 curr = read_u64(head);
-    
-        while curr != head {
-            u16 len = read_u16(curr + 0x48);
-            u64 buf = read_u64(curr + 0x50);
-    
-            if len == 18 {
-                u8 c0 = read_u16(buf + 0);
-                u8 c1 = read_u16(buf + 2);
-                u8 c2 = read_u16(buf + 4);
-                u8 c3 = read_u16(buf + 6);
-                u8 c4 = read_u16(buf + 8);
-    
-                if c0 == 'n' && c1 == 't' && c2 == 'd' && c3 == 'l' && c4 == 'l' {
-                    return read_u64(curr + 0x20);
-                }
+fn get_peb() shellcode u64 {
+    0x55 0x48 0x89 0xE5
+    0x65 0x48 0x8B 0x04 0x25 0x60 0x00 0x00 0x00
+    0x48 0x89 0xEC 0x5D 0xC3
+}
+
+fn read_u16(u64 addr) u64 {
+    return $(addr) | ($(addr + 1) << 8);
+}
+
+fn read_u32(u64 addr) u64 {
+    u64 b0 = $(addr)     & 0xFF;
+    u64 b1 = $(addr + 1) & 0xFF;
+    u64 b2 = $(addr + 2) & 0xFF;
+    u64 b3 = $(addr + 3) & 0xFF;
+    return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24);
+}
+
+fn read_u64(u64 addr) u64 {
+    return $(addr)
+        | ($(addr + 1) << 8)
+        | ($(addr + 2) << 16)
+        | ($(addr + 3) << 24)
+        | ($(addr + 4) << 32)
+        | ($(addr + 5) << 40)
+        | ($(addr + 6) << 48)
+        | ($(addr + 7) << 56);
+}
+
+fn get_ntdll_base() u64 {
+    u64 ldr  = read_u64(get_peb() + 0x18);
+    u64 head = ldr + 0x20;
+    u64 curr = read_u64(head);
+
+    while curr != head {
+        u16 len = read_u16(curr + 0x48);
+        u64 buf = read_u64(curr + 0x50);
+
+        if len == 18 {
+            u8 c0 = read_u16(buf + 0);
+            u8 c1 = read_u16(buf + 2);
+            u8 c2 = read_u16(buf + 4);
+            u8 c3 = read_u16(buf + 6);
+            u8 c4 = read_u16(buf + 8);
+
+            if c0 == 'n' && c1 == 't' && c2 == 'd' && c3 == 'l' && c4 == 'l' {
+                return read_u64(curr + 0x20);
             }
-            curr = read_u64(curr);
         }
-        return 0;
+        curr = read_u64(curr);
     }
-    
-    fn streq(u64 a, u64 b) u64 {
-        u64 i = 0;
-        while 1 == 1 {
-            u64 ca = $(a + i);
-            u64 cb = $(b + i);
-            if ca != cb { return 0; }
-            if ca == 0     { return 1; }
-            i = i + 1;
-        }
-        return 0;
+    return 0;
+}
+
+fn streq(u64 a, u64 b) u64 {
+    u64 i = 0;
+    while 1 == 1 {
+        u64 ca = $(a + i);
+        u64 cb = $(b + i);
+        if ca != cb { return 0; }
+        if ca == 0     { return 1; }
+        i = i + 1;
     }
-    
-    /*fn print_str(u64 addr) {
-        u64 i = 0;
-        while 1 == 1 {
-            u64 c = $(addr + i) & 0xFF;
-            if c == 0 { return; }
-            io::printf("%c", c);
-            i = i + 1;
-        }
-    }*/
-    
-    fn streq_raw(u64 raw, string occ) u64 {
-        u64 occ_len = $(occ - 8) & 0xFF;  // length prefix
-        u64 i = 0;
-        while i < occ_len {
-            u64 ca = $(raw + i)     & 0xFF;
-            u64 cb = $(occ + i)     & 0xFF;
-            if ca != cb { return 0; }
-            i = i + 1;
-        }
-       
-        if ($(raw + occ_len) & 0xFF) != 0 { return 0; }
-        return 1;
+    return 0;
+}
+
+/*fn print_str(u64 addr) {
+    u64 i = 0;
+    while 1 == 1 {
+        u64 c = $(addr + i) & 0xFF;
+        if c == 0 { return; }
+        io::printf("%c", c);
+        i = i + 1;
     }
-    
-    fn get_ssn(string target) u64 {
-        u64 base = get_ntdll_base();
-        u64 e_lfanew           = read_u32(base + 0x3C);
-        u64 ntHeaders          = base + e_lfanew;
-        u64 optHeader          = ntHeaders + 0x18;
-        u64 exportRva          = read_u32(optHeader + 0x70);
-        u64 exportDir          = base + exportRva;
-    
-        u32 numberOfNames      = read_u32(exportDir + 0x18);
-        u32 addrOfNamesRva     = read_u32(exportDir + 0x20);
-        u32 addrOfOrdinalsRva  = read_u32(exportDir + 0x24);
-        u32 addrOfFunctionsRva = read_u32(exportDir + 0x1C);
-    
-        u64 namesArray     = base + addrOfNamesRva;
-        u64 ordinalsArray  = base + addrOfOrdinalsRva;
-        u64 functionsArray = base + addrOfFunctionsRva;
-    
-        u64 i = 0;
-        while i < numberOfNames {
-            u32 nameRva = read_u32(namesArray + i * 4);
-            u64 namePtr = base + nameRva;
-    
-            if streq_raw(namePtr, target) == true {
-                u16 ordinal = read_u16(ordinalsArray + i * 2);
-                u32 funcRva = read_u32(functionsArray + ordinal * 4);
-                u64 funcVa  = base + funcRva;
-    
-                u64 ssn      = 0xFFFFFFFFFFFFFFFF;
-                u64 max_scan = 512;
-                u64 offset   = 0;
-    
-                while offset < max_scan - 5 {
-                    u64 byte = $(funcVa + offset) & 0xFF;
-    
-                    if byte == 0xB8 {
-                        u64 candidate = read_u32(funcVa + offset + 1);
-    
-                        if candidate < 0x2000 && candidate != 0 {
-                            ssn = candidate & 0xFFFF;
-    
-                            return ssn;
-                        }
+}*/
+
+fn streq_raw(u64 raw, string occ) u64 {
+    u64 occ_len = $(occ - 8) & 0xFF;  // length prefix
+    u64 i = 0;
+    while i < occ_len {
+        u64 ca = $(raw + i)     & 0xFF;
+        u64 cb = $(occ + i)     & 0xFF;
+        if ca != cb { return 0; }
+        i = i + 1;
+    }
+   
+    if ($(raw + occ_len) & 0xFF) != 0 { return 0; }
+    return 1;
+}
+
+fn get_ssn(string target) u64 {
+    u64 base = get_ntdll_base();
+    u64 e_lfanew           = read_u32(base + 0x3C);
+    u64 ntHeaders          = base + e_lfanew;
+    u64 optHeader          = ntHeaders + 0x18;
+    u64 exportRva          = read_u32(optHeader + 0x70);
+    u64 exportDir          = base + exportRva;
+
+    u32 numberOfNames      = read_u32(exportDir + 0x18);
+    u32 addrOfNamesRva     = read_u32(exportDir + 0x20);
+    u32 addrOfOrdinalsRva  = read_u32(exportDir + 0x24);
+    u32 addrOfFunctionsRva = read_u32(exportDir + 0x1C);
+
+    u64 namesArray     = base + addrOfNamesRva;
+    u64 ordinalsArray  = base + addrOfOrdinalsRva;
+    u64 functionsArray = base + addrOfFunctionsRva;
+
+    u64 i = 0;
+    while i < numberOfNames {
+        u32 nameRva = read_u32(namesArray + i * 4);
+        u64 namePtr = base + nameRva;
+
+        if streq_raw(namePtr, target) == true {
+            u16 ordinal = read_u16(ordinalsArray + i * 2);
+            u32 funcRva = read_u32(functionsArray + ordinal * 4);
+            u64 funcVa  = base + funcRva;
+
+            u64 ssn      = 0xFFFFFFFFFFFFFFFF;
+            u64 max_scan = 512;
+            u64 offset   = 0;
+
+            while offset < max_scan - 5 {
+                u64 byte = $(funcVa + offset) & 0xFF;
+
+                if byte == 0xB8 {
+                    u64 candidate = read_u32(funcVa + offset + 1);
+
+                    if candidate < 0x2000 && candidate != 0 {
+                        ssn = candidate & 0xFFFF;
+
+                        return ssn;
                     }
-                    offset = offset + 1;
                 }
-    
-                return ordinal; // return ordinal if nothing found
+                offset = offset + 1;
             }
-    
-            i += 1;
+
+            return ordinal; // return ordinal if nothing found
         }
-    
-        return 0xFFFFFFFFFFFFFFFF; // nothing found
+
+        i += 1;
     }
+
+    return 0xFFFFFFFFFFFFFFFF; // nothing found
+}
 }

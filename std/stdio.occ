@@ -40,10 +40,10 @@ module stdio {
     }
 
     fn print_char_windows(i64 c) {
-        u64* buf = alloc(9);
+        u64* buf = memory::malloc<u64>(9);
         $(buf + 8) = c;
         win_syscall_x86_64::WriteFile(GetStdOutFromPEB(), buf + 8, 1);
-        del(buf);
+        memory::free<u64>(buf);
     }
 
     fn print_char(i64 c) {
@@ -248,8 +248,13 @@ module stdio {
     }
 }
 
-
+/*
 fn main() {
-    stdio::printf("Hi World!\n");
-}
+    i64 x = memory::malloc<i64>(8);	
+    $x = 10;
+    i64 y = $x;
+    memory::free<i64>(x);
 
+    stdio::printf("%i\n", y);
+}
+*/

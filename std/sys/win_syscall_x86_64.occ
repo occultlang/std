@@ -21,7 +21,7 @@ module win_syscall_x86_64 {
 	mov rax, 0
 	mov [rsp + 0x40], rax
 	mov [rsp + 0x48], rax
-	mov rax, [rbp + 0x18]
+	mov rax, [rbp + 0x30]
 	syscall
 	mov rsp, rbp
 	pop rbp
@@ -35,37 +35,59 @@ module win_syscall_x86_64 {
     }
 	
 
-    // 0x10 == AllocationType 
-    // 0x?? we need to figure out where Protect is on the stack (should be 0x04
-    // 0x20 == syscall
     // Moving AllocationType and Protect is another whole issue, idfk where they are supposed to be stored 
     // ProcessHandle (rcx MOVE TO r10); BaseAddress (rdx); ZeroBits (r8); RegionSize(r9); AllocationType (stack); Protect (stack)
-    fn __NtAllocateVirtualMemory(i64 ProcessHandle, i64* BaseAddress, u64* ZeroBits, u64* RegionSize, u64 AllocationType, u64 Protect, u64 syscall_number) asm i64 {
+fn __NtAllocateVirtualMemory(i64 ProcessHandle, i64* BaseAddress, u64* ZeroBits, u64* RegionSize, u64 AllocationType, u64 Protect, u64 syscall_number) asm i64 {
     push rbp
-    mov rbp, rsp
-    sub rsp, 0x48
-    mov r10, rcx                 
-
-    mov rax, [rbp + 0x10]    
-    
+    mov rbp, rsp            
+    sub rsp, 0x40
+    mov r10, rcx            
+                          
+    mov rax, [rbp + 0x30]   
+    mov [rsp + 0x28], rax
+    mov rax, [rbp + 0x38]   
+    mov [rsp + 0x30], rax
+    mov rax, [rbp + 0x40]   
+    syscall
     mov rsp, rbp
     pop rbp
     ret
-} // syscall
+}
 
 fn VirtualAllocEx(i64 hProcess, i64 lpAddress, u64 dwSize, i64 flAllocationType, i64 flProtect) i64 {
-    u64 size = dwSize;
-    i64 base = lpAddress;     // local on stack, always a valid address to pass
     i64 status = __NtAllocateVirtualMemory(
         hProcess,
-        @base,                // kernel reads/writes through this
+        @lpAddress,                // kernel reads/writes through this
         0,
-        @size,
+        @dwSize,
         flAllocationType,
         flProtect,
         win_syscall_helper::get_ssn("NtAllocateVirtualMemory"));
-    return status;
     if (status < 0) { return status; }
-    return base;              // kernel wrote allocated VA here
+    return lpAddress;              // kernel wrote allocated VA here
+}
+
+fn __NtFreeVirtualMemory(i64 ProcessHandle, i64* BaseAddress, u64* RegionSize, u64 FreeType, u64 syscall_number) asm i64 {
+    push rbp
+    mov rbp, rsp
+    sub rsp, 0x30
+    mov r10, rcx          
+                           
+                         
+                           
+    mov rax, [rbp + 0x30]  
+    syscall
+    mov rsp, rbp
+    pop rbp
+    ret
+}
+
+fn VirtualFreeEx(i64 hProcess, i64 lpAddress, u64 dwSize) i64 {
+    return __NtFreeVirtualMemory(
+        hProcess,
+        @lpAddress,
+        @dwSize,
+        0x8000,            
+        win_syscall_helper::get_ssn("NtFreeVirtualMemory"));
 }
 }

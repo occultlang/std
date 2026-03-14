@@ -11,11 +11,20 @@ module memory {
     generic<T>
     fn malloc(u64 len) T* {
         mem_heap<T>* heap;
-        len = 16 + len;
-        len = (len + 4095) & -4096;
 
-        if is_win64 == true {
-            heap = win_syscall_x86_64::VirtualAllocEx(
+        len  = 16 + len;
+        len  = (len + 4095) & -4096;
+    
+				if is_linux64 == true {
+						heap = syscall_x86_64::mmap(0, len, 0x1 | 0x2, 0x20 | 0x02, -1, 0);
+
+						if (heap == -1) {
+								syscall_x86_64::write(1, "mmap failed\n", 12);
+								return 0;
+						}
+				}
+				else if is_win64 == true {
+						heap = win_syscall_x86_64::VirtualAllocEx(
                 -1,
                 0,
                 len,
@@ -25,19 +34,11 @@ module memory {
             if (heap == 0) {
                 return 0;
             }
-        }
-        else {
-            heap = syscall_x86_64::mmap(0, len, 0x1 | 0x2, 0x20 | 0x02, -1, 0);
+				}
 
-            if (heap == -1) {
-                syscall_x86_64::write(1, "mmap failed\n", 12);
-                return 0;
-            }
-        }
-
-        heap.len    = len;
+        heap.len = len;
         heap.user_p = heap + 16;
-
+        
         return heap.user_p;
     }
 
@@ -46,22 +47,22 @@ module memory {
         mem_heap<T>* heap;
 
         if ptr == 0 {
-            if is_win64 == false {
-                syscall_x86_64::write(1, "nullptr in free\n", 16);
-            }
-            return;
+            syscall_x86_64::write(1, "nullptr in free\n", 16);
+
+            return 0;
         }
 
         heap = ptr - 16;
-
-        if is_win64 == true {
-            win_syscall_x86_64::VirtualFreeEx(-1, heap, 0);
-        }
-        else {
-            syscall_x86_64::munmap(heap, heap.len);
-        }
+				
+				if is_linux64 == true {
+						syscall_x86_64::munmap(heap, heap.len);
+				}
+				else if is_win64 == true {
+						win_syscall_x86_64::VirtualFreeEx(-1, heap, 0);
+				}
     }
 }
+
 /*fn main() {
   i64 addr = 0;
   i64 x = win_syscall_x86_64::VirtualAllocEx(-1, addr, 4096, 0x1000 | 0x2000, 4);

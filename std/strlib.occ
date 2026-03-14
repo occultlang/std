@@ -1,0 +1,6 @@
+include "stdio.occ"
+include "memory.occ"
+
+module strlib {
+	
+}

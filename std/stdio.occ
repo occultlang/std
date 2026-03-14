@@ -1,4 +1,4 @@
-import memory from std;
+include "memory.occ"
 import win_syscall_x86_64 from std/sys;
 
 // will make this file use raw syscalls later on + inline assembly

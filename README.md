@@ -1,4 +1,4 @@
 # stdlib
 Occult's standard library.
 
-LICENSE - MIT
+[LICENSE](https://github.com/occultlang/std/blob/main/LICENSE)

@@ -1,0 +1,50 @@
+include "syscall_x86_64_helpers.occ"
+include "syscall_x86_64_table.occ"
+
+module syscall_x86_64 {
+    fn write(i64 fd, i64 buf, i64 len) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_write, fd, buf, len);
+    }
+
+    fn read(i64 fd, i64 buf, i64 len) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_read, fd, buf, len);
+    }
+
+    fn open(string path, i64 flags, i64 mode) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_open, path, flags, mode);
+    }
+
+    fn close(i64 fd) {
+        return syscall_helper::syscall_1(x86_64_syscall_table::sys_close, fd);
+    }
+
+    fn exit(i64 exit_code) {
+        syscall_helper::syscall_1(x86_64_syscall_table::sys_exit, exit_code);
+    }
+
+    fn mmap(i64 addr, i64 len, i64 prot, i64 flags, i64 fd, i64 offset) {
+        return syscall_helper::syscall_6(x86_64_syscall_table::sys_mmap, addr, len, prot, flags, fd, offset);
+    }
+
+    fn munmap(i64 addr, i64 len) {
+        return syscall_helper::syscall_2(x86_64_syscall_table::sys_munmap, addr, len);
+    }
+
+    fn mprotect(i64 addr, i64 len, i64 prot) {
+        return syscall_helper::syscall_3(x86_64_syscall_table::sys_mprotect, addr, len, prot);
+    }
+
+    fn brk(i64 addr) {
+        return syscall_helper::syscall_1(x86_64_syscall_table::sys_brk, addr);
+    }
+}
+
+/*fn main() {
+    string path = "/home/anthony/occult/build/output.txt";
+    string content = "Hello from Occult!\n";
+    i64 len = $(content - 8);
+
+    i64 fd = syscall_x86_64::open(path, 577, 420);
+    syscall_x86_64::write(fd, content, len);
+    syscall_x86_64::close(fd);
+}*/

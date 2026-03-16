@@ -1,0 +1,72 @@
+import stdio from std;
+import memory from std;
+
+module strlib {
+	/*
+		Uses the prefix for strings builtin i.e the size, we prefer this over the slower strlen. 
+		The size of every string is str(address) - 8 as shown below.
+	*/
+	fn strlen_fast(string str) { 
+    return $(str - 8); 
+	}
+
+	fn strlen(string str) {
+    i64 len = 0;
+    string p = str;
+    i64 char_val = $p & 255;
+    
+    while char_val != 0 {
+        len = len + 1;
+        p = p + 1;
+        char_val = $p & 255;
+    }
+
+    return len;
+	}
+
+	fn strcmp(string str1, string str2) i64 {
+    string p1 = str1;
+    i64 char1 = $p1 & 255;
+
+    string p2 = str2;
+    i64 char2 = $p2 & 255;
+
+    while char1 != 0 && char2 != 0 {
+      if char1 != char2 {
+          return char1 - char2;
+      }
+
+      p1 = p1 + 1;
+      p2 = p2 + 1;
+
+      char1 = $p1 & 255;
+      char2 = $p2 & 255;
+    }
+
+    return char1 - char2;
+	}
+	
+	fn empty(string s) {
+		if strlen_fast(s) == 0 {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	fn char_at(string s, u64 index) char {
+		if strlen_fast(s) < index { 
+			stdio::printf("ERR: index out of bounds\n"); 
+			return ''; 
+		}
+		
+		return $(s + index);
+	}
+}
+
+/*fn main() {
+	string s = "Hello";
+	stdio::printf("String: %s\nLength: %i\n", s, strlib::strlen(s));
+	stdio::printf("Empty: %i\n", strlib::empty(s));
+	stdio::printf("Char At (index: 1): %c\n", strlib::char_at(s, 1));
+}*/

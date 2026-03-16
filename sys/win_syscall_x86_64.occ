@@ -1,0 +1,93 @@
+include "win_syscall_x86_64_helpers.occ"
+
+module win_syscall_x86_64 {
+    struct IO_STATUS_BLOCK {
+        i64* Pointer; // or status code (We don't have unions)
+        u64* Information;
+    }
+
+    // Contains stuff that I care about
+    fn __NtWriteFile(i64 FileHandle, IO_STATUS_BLOCK* IoStatusBlock, string buffer, u64 length, u64 syscall_number) asm i64 {
+				push rbp
+        mov rbp, rsp
+        sub rsp, 0x68
+				mov r10, rcx
+				mov [rsp + 0x28], rdx
+				xor rdx, rdx
+				mov [rsp + 0x30], r8
+				xor r8, r8
+				mov [rsp + 0x38], r9
+				xor r9, r9
+				mov rax, 0
+				mov [rsp + 0x40], rax
+				mov [rsp + 0x48], rax
+				mov rax, [rbp + 0x30]
+				syscall
+				mov rsp, rbp
+				pop rbp
+				ret
+    }
+
+    // Doesn't use the optional parameters (i.e lpOverlapped)
+    fn WriteFile(i64 FileHandle, string buffer, u64 length) {
+				IO_STATUS_BLOCK* IoStatusBlock;
+				return __NtWriteFile(FileHandle, @IoStatusBlock, buffer, length, win_syscall_helper::get_ssn("NtWriteFile"));
+    }
+	
+
+    // Moving AllocationType and Protect is another whole issue, idfk where they are supposed to be stored 
+    // ProcessHandle (rcx MOVE TO r10); BaseAddress (rdx); ZeroBits (r8); RegionSize(r9); AllocationType (stack); Protect (stack)
+		fn __NtAllocateVirtualMemory(i64 ProcessHandle, i64* BaseAddress, u64* ZeroBits, u64* RegionSize, u64 AllocationType, u64 Protect, u64 syscall_number) asm i64 {
+				push rbp
+				mov rbp, rsp            
+				sub rsp, 0x40
+				mov r10, rcx            
+
+				mov rax, [rbp + 0x30]   
+				mov [rsp + 0x28], rax
+				mov rax, [rbp + 0x38]   
+				mov [rsp + 0x30], rax
+				mov rax, [rbp + 0x40]   
+				syscall
+				mov rsp, rbp
+				pop rbp
+				ret
+		}
+
+		fn VirtualAllocEx(i64 hProcess, i64 lpAddress, u64 dwSize, i64 flAllocationType, i64 flProtect) i64 {
+				i64 status = __NtAllocateVirtualMemory(
+						hProcess,
+						@lpAddress,                // kernel reads/writes through this
+						0,
+						@dwSize,
+						flAllocationType,
+						flProtect,
+						win_syscall_helper::get_ssn("NtAllocateVirtualMemory"));
+				if (status < 0) { return status; }
+				return lpAddress;              // kernel wrote allocated VA here
+		}
+
+		fn __NtFreeVirtualMemory(i64 ProcessHandle, i64* BaseAddress, u64* RegionSize, u64 FreeType, u64 syscall_number) asm i64 {
+				push rbp
+				mov rbp, rsp
+				sub rsp, 0x30
+				mov r10, rcx          
+
+
+
+				mov rax, [rbp + 0x30]  
+				syscall
+				mov rsp, rbp
+				pop rbp
+				ret
+		}
+
+		fn VirtualFreeEx(i64 hProcess, i64 lpAddress, u64 dwSize) i64 {
+				return __NtFreeVirtualMemory(
+						hProcess,
+						@lpAddress,
+						@dwSize,
+						0x8000,            
+						win_syscall_helper::get_ssn("NtFreeVirtualMemory"));
+		}
+}

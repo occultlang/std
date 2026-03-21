@@ -1,0 +1,57 @@
+include "memory.occ"
+module vec {
+    generic<T>
+    struct Vec {
+        T* data;
+        i64 length;
+        i64 capacity;
+    }
+
+    generic<T>
+    fn new() Vec<T>* {
+        Vec<T>* arr = std::malloc(24);
+        arr.capacity = 4;
+        arr.length = 0;
+        arr.data = std::malloc(arr.capacity * 8);
+        return arr;
+    }
+
+    generic<T>
+    fn push(Vec<T>* arr, T val) i64 {
+        if arr.length == arr.capacity {
+            i64 new_cap = arr.capacity * 2;
+            i64* new_data = std::malloc(new_cap * 8);
+
+            i64 i = 0;
+            while (i < arr.length) {
+                i64* src = arr.data + i * 8;
+                i64* dst = new_data + i * 8;
+                $dst = $src;
+                i = i + 1;
+            }
+
+            std::free(arr.data);
+            arr.data = new_data;
+            arr.capacity = new_cap;
+        }
+
+        i64* slot = arr.data + arr.length * 8;
+        $slot = val;
+        arr.length = arr.length + 1;
+
+        return 0;
+    }
+
+    generic<T>
+    fn get(Vec<T>* arr, i64 index) T {
+        i64* slot = arr.data + index * 8;
+        return $slot;
+    }
+
+    generic<T>
+    fn free(Vec<T>* arr) i64 {
+        std::free(arr.data);
+        std::free(arr);
+        return 0;
+    }
+}

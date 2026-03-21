@@ -1,5 +1,4 @@
 import stdio from std;
-import memory from std;
 
 module strlib {
 	/*
@@ -56,8 +55,7 @@ module strlib {
 	
 	fn char_at(string s, u64 index) char {
 		if strlen_fast(s) < index { 
-			stdio::printf("ERR: index out of bounds\n"); 
-			return ''; 
+			return 0; 
 		}
 		
 		return $(s + index);

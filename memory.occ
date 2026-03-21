@@ -1,7 +1,7 @@
 import syscall_x86_64 from sys;
 import win_syscall_x86_64 from sys;
 
-module memory {
+module std {
     generic<T>
     struct mem_heap {
         u64 len;
@@ -9,7 +9,7 @@ module memory {
     }
 
     generic<T>
-    fn malloc(u64 len) T* {
+    fn __malloc_generic(u64 len) T* {
         mem_heap<T>* heap;
 
         len  = 16 + len;
@@ -43,7 +43,7 @@ module memory {
     }
 
     generic<T>
-    fn free(T* ptr) {
+    fn __free_generic(T* ptr) {
         mem_heap<T>* heap;
 
         if ptr == 0 {
@@ -60,6 +60,14 @@ module memory {
 				else if is_win64 == true {
 						win_syscall_x86_64::VirtualFreeEx(-1, heap, 0);
 				}
+    }
+
+    fn malloc(u64 len) i64 {
+        return __malloc_generic<i64>(len);
+    }
+
+    fn free(i64 ptr) {
+        __free_generic<i64>(ptr);
     }
 }
 

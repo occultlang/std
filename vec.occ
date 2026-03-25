@@ -1,5 +1,5 @@
 include "memory.occ"
-module std {
+module vec {
     generic<T>
     struct Vec {
         T* data;

@@ -1,6 +1,6 @@
 import stdio from std;
 
-module std {
+module strlib {
 	/*
 		Uses the prefix for strings builtin i.e the size, we prefer this over the slower strlen. 
 		The size of every string is str(address) - 8 as shown below.

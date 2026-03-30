@@ -62,6 +62,42 @@ module std {
 				}
     }
 
+    generic<T>
+    fn __realloc_generic(T* ptr, u64 new_size) T* {
+        if ptr == 0 {
+            return __malloc_generic<T>(new_size);
+        }
+
+        mem_heap<T>* old_heap = ptr - 16;
+        u64 old_len = old_heap.len;
+        u64 old_user_size = old_len - 16;
+
+        T* new_ptr = __malloc_generic<T>(new_size);
+        if new_ptr == 0 {
+            return 0;
+        }
+
+        u64 copy_size = old_user_size;
+        if new_size < old_user_size {
+            copy_size = new_size;
+        }
+
+        i64 i = 0;
+        while i < copy_size {
+            i8* src = ptr + i;
+            i8* dst = new_ptr + i;
+            $dst = $src;
+            i += 1;
+        }
+
+        __free_generic<T>(ptr);
+        return new_ptr;
+    }
+
+    fn realloc(i64 ptr, u64 new_size) i64 {
+        return __realloc_generic<i64>(ptr, new_size);
+    }
+
     fn malloc(u64 len) i64 {
         return __malloc_generic<i64>(len);
     }

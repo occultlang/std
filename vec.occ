@@ -1,135 +1,135 @@
 include "memory.occ"
 
 module std {
-// TODO: Add reference param support for generic structs
-
-generic<T>
-struct Vector {
-  u64 data_size;
-  u64 capacity;
-  u64 length;
-  T* data;
-}
-
-generic<T>
-fn vector_construct(Vector<T>* vec, u64 data_size, u64 capacity) {
-  if capacity == 0 { capacity = 1; } 
-
-  vec.data_size = data_size;
-  vec.capacity = capacity;
-  vec.length = 0;
-  vec.data = std::realloc(vec.data, data_size * capacity);
-}
-
-generic<T>
-fn vector_push_back(Vector<T>* vec, T data) {
-  if vec.length == vec.capacity {
-    vec.capacity *= 2;
-
-    vec.data = std::realloc(vec.data, vec.data_size * vec.capacity);
-  }
-
-  $(vec.data + vec.length * vec.data_size) = data;
-  vec.length += 1;
-}
-
-generic<T>
-fn vector_pop_back(Vector<T>* vec) T {
-  vec.length -= 1;
-
-  T data = $(vec.data + vec.length * vec.data_size);
-
-  vec.data = std::realloc(vec.data, vec.data_size * vec.length);
-
-  return data;
-}
-
-generic<T>
-fn vector_free(Vector<T>* vec) {
-  std::free(vec.data);
-}
-
-generic<T>
-fn vector_empty(Vector<T>* vec) {
-  return vec.length == 0;
-}
-
-generic<T>
-fn vector_at(Vector<T>* vec, u64 i) T {
-  return $(vec.data + i * vec.data_size);
-}
-
-generic<T>
-fn vector_push_front(Vector<T>* vec, T data) {
-  if vec.length == vec.capacity {
-    vec.capacity *= 2;
-    vec.data = std::realloc(vec.data, vec.data_size * vec.capacity);
-  }
-    
-  i64 i = vec.length;
-  while i > 0 {
-    T* src = vec.data + (i - 1) * vec.data_size;
-    T* dst = vec.data + i * vec.data_size;
+  // TODO: Add reference param support for generic structs
   
-    $dst = $src;
-    i -= 1;
+  generic<T>
+  struct Vector {
+    u64 data_size;
+    u64 capacity;
+    u64 length;
+    T* data;
   }
-    
-  $(vec.data + 0) = data;
   
-  vec.length += 1;
-}
-
-generic<T>
-fn vector_pop_front(Vector<T>* vec) T {
-  T data = $(vec.data + 0);
-  i64 i = 0;
-
-  while i < vec.length - 1 {
-    T* src = vec.data + (i + 1) * vec.data_size;
-    T* dst = vec.data + i * vec.data_size;
+  generic<T>
+  fn vector_construct(Vector<T>* vec, u64 data_size, u64 capacity) {
+    if capacity == 0 { capacity = 1; } 
+  
+    vec.data_size = data_size;
+    vec.capacity = capacity;
+    vec.length = 0;
+    vec.data = std::realloc(vec.data, data_size * capacity);
+  }
+  
+  generic<T>
+  fn vector_push_back(Vector<T>* vec, T data) {
+    if vec.length == vec.capacity {
+      vec.capacity *= 2;
+  
+      vec.data = std::realloc(vec.data, vec.data_size * vec.capacity);
+    }
+  
+    $(vec.data + vec.length * vec.data_size) = data;
+    vec.length += 1;
+  }
+  
+  generic<T>
+  fn vector_pop_back(Vector<T>* vec) T {
+    vec.length -= 1;
+  
+    T data = $(vec.data + vec.length * vec.data_size);
+  
+    vec.data = std::realloc(vec.data, vec.data_size * vec.length);
+  
+    return data;
+  }
+  
+  generic<T>
+  fn vector_free(Vector<T>* vec) {
+    std::free(vec.data);
+  }
+  
+  generic<T>
+  fn vector_empty(Vector<T>* vec) {
+    return vec.length == 0;
+  }
+  
+  generic<T>
+  fn vector_at(Vector<T>* vec, u64 i) T {
+    return $(vec.data + i * vec.data_size);
+  }
+  
+  generic<T>
+  fn vector_push_front(Vector<T>* vec, T data) {
+    if vec.length == vec.capacity {
+      vec.capacity *= 2;
+      vec.data = std::realloc(vec.data, vec.data_size * vec.capacity);
+    }
       
-    $dst = $src;
-    i += 1;
-  }
+    i64 i = vec.length;
+    while i > 0 {
+      T* src = vec.data + (i - 1) * vec.data_size;
+      T* dst = vec.data + i * vec.data_size;
     
-  vec.length -= 1;
-
-  return data;
-}
-
-generic<T>
-fn vector_insert(Vector<T>* vec, u64 index, T data) {
-  if vec.length == vec.capacity {
-    vec.capacity *= 2;
-    vec.data = std::realloc(vec.data, vec.data_size * vec.capacity);
-  }
-    
-  i64 i = vec.length;
-    
-  while i > index {
-    T* src = vec.data + (i - 1) * vec.data_size;
-    T* dst = vec.data + i * vec.data_size;
+      $dst = $src;
+      i -= 1;
+    }
       
-    $dst = $src;
-    i -= 1;
-  }
+    $(vec.data + 0) = data;
     
-  $(vec.data + index * vec.data_size) = data;
-    
-  vec.length += 1;
-}
-
-generic<T>
-fn vector_clear(Vector<T>* vec) {
-  i64 i = 0;
-
-  while i < vec.length * vec.data_size {
-    $(vec.data + i) = 0;
-
-    i += 1;
+    vec.length += 1;
   }
-
-  vec.length = 0;
-}
+  
+  generic<T>
+  fn vector_pop_front(Vector<T>* vec) T {
+    T data = $(vec.data + 0);
+    i64 i = 0;
+  
+    while i < vec.length - 1 {
+      T* src = vec.data + (i + 1) * vec.data_size;
+      T* dst = vec.data + i * vec.data_size;
+        
+      $dst = $src;
+      i += 1;
+    }
+      
+    vec.length -= 1;
+  
+    return data;
+  }
+  
+  generic<T>
+  fn vector_insert(Vector<T>* vec, u64 index, T data) {
+    if vec.length == vec.capacity {
+      vec.capacity *= 2;
+      vec.data = std::realloc(vec.data, vec.data_size * vec.capacity);
+    }
+      
+    i64 i = vec.length;
+      
+    while i > index {
+      T* src = vec.data + (i - 1) * vec.data_size;
+      T* dst = vec.data + i * vec.data_size;
+        
+      $dst = $src;
+      i -= 1;
+    }
+      
+    $(vec.data + index * vec.data_size) = data;
+      
+    vec.length += 1;
+  }
+  
+  generic<T>
+  fn vector_clear(Vector<T>* vec) {
+    i64 i = 0;
+  
+    while i < vec.length * vec.data_size {
+      $(vec.data + i) = 0;
+  
+      i += 1;
+    }
+  
+    vec.length = 0;
+  }
 }

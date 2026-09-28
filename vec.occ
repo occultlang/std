@@ -1,8 +1,6 @@
 include "memory.occ"
 
-module std {
-  // TODO: Add reference param support for generic structs
-  
+module std {  
   generic<T>
   struct Vector {
     u64 data_size;
@@ -12,13 +10,14 @@ module std {
   }
   
   generic<T>
-  fn vector_construct(Vector<T>* vec, u64 data_size, u64 capacity) {
-    if capacity == 0 { capacity = 1; } 
-  
-    vec.data_size = data_size;
+  fn vector_new(u64 data_size, u64 capacity) Vector<T>* {
+    Vector<T>* vec = std::malloc(32); 
+    if capacity == 0 { capacity = 1; }
     vec.capacity = capacity;
     vec.length = 0;
-    vec.data = std::realloc(vec.data, data_size * capacity);
+    vec.data_size = data_size;
+    vec.data = std::malloc(vec.capacity * data_size); 
+    return vec;
   }
   
   generic<T>
